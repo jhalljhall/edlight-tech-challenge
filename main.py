@@ -4,6 +4,8 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api.api_v1.api import api_router
 from app.core.config import settings
 
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
@@ -24,3 +26,4 @@ async def root():
     return {"message":"Hello World"}
     
 app.include_router(api_router, prefix=settings.API_V1_STR)
+app.mount("/images", StaticFiles(directory="images"), name="images")
