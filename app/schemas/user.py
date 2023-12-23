@@ -1,23 +1,11 @@
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
 
-from app.schemas.review import Review
-# from app.schemas.tag import Tag
-
-#* schema notes
-# using pydantic models - help define structure of user data
-    #! specifying which fields are required/optional + how to be validated
-
-    #! "user" as in the perspective of the data that the API recieves from the client (user input during creation or update)
-    #! - and the data that the API returns to the client - user data in API response
-
-# Shared properties
-    # represents the shared properties of a user
 class UserBase(BaseModel):
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = True
     is_superuser: bool = False
-    username: Optional[str] = None
 
 # Properties to receive via API on creation
     #extend userbase - defines properties to recieve via API during user creation
@@ -50,12 +38,7 @@ class UserInDBBase(UserBase):
     #* pass - is a placeholder that does nothing
     # User class is inheriting from UserInDBBase but not adding any additional properties
 class User(UserInDBBase):
-
-    # tags: List["Tag"]
-    #badges: List["B"]
-    reviews: List["Review"]
-    #collection: List["C"]
-    #! check this later
+    pass
 
 
 # Additional properties stored in DB
@@ -63,3 +46,4 @@ class User(UserInDBBase):
     #includes additional details that might not be exposed to user but crucial for app's internal functionality
 class UserInDB(UserInDBBase):
     hashed_password: str
+    created: datetime

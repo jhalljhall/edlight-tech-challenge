@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union, String
+from typing import Any, Dict, Optional, Union
 import os
 from dotenv import load_dotenv
 import requests
@@ -7,31 +7,30 @@ from sqlalchemy.orm import Session
 from openai import OpenAI
 
 class AIController():
-    async def describe_image(self, db: Session, *, image_url: String) -> String:
+    async def describe_image(self, db: Session, *, image_url: str) -> str:
         client = OpenAI()
         try:
             payload = {
                 "model": "gpt-4-vision-preview",
                 "messages": [
                     {
-                    "role": "user",
-                    "content": [
+                        "role": "user",
+                        "content": [
                         {
-                        "type": "text",
-                        "text": "What’s in this image?"
+                            "type": "text",
+                            "text": "What’s in this image?"
                         },
                         {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_image}"
+                            "type": "image_url",
+                            "image_url": {
+                                "url": {image_url}
+                            }
                         }
-                        }
-                    ]
+                        ]
                     }
                 ],
                 "max_tokens": 300
             }
-            base64_image = self.encode_image(image_url)
 
             # use api key from .env
             headers = {

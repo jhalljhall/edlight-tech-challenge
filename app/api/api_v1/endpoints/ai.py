@@ -7,28 +7,27 @@ import pathlib
 
 router = APIRouter()
 
+#current_user: models.User = Depends(deps.get_current_active_user),
+
 @router.post("/analyze-image/", response_model=schemas.Msg, status_code=201)
-async def read_users(
+async def uploadfile(
+    file: UploadFile,
     db: Session = Depends(deps.get_db),
-    file: UploadFile | None = None,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    
 ) -> Any:
     """
     Retrieve Image Description.
     """
     if not file:
-        return "No upload file sent"
+        return "No file provided"
     else:
-        #store the file
-        image_url = ""
-
         # path of this script 
-        directory = "/images"
+        directory = "/images/"
         filepath = directory + file.filename
 
         # To create a file 
         pathlib.Path(filepath).touch() 
-        message = await controllers.ai.describe_image(db, image_url)
+        message = await controllers.ai.describe_image(db, filepath)
         return message
 
     return message
