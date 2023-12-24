@@ -1,16 +1,20 @@
 from typing import Any, Dict, Optional, Union
+from sqlalchemy.orm import Session
 import os
+from fastapi import UploadFile
 from dotenv import load_dotenv
 import requests
 import base64
-from sqlalchemy.orm import Session
 import openai
 from openai import OpenAI
 import json
+from PIL import Image
+import io
 
 class AIController():
     async def describe_image(self, db: Session, image_url: str) -> str:
         client = OpenAI()
+        print(f"image: {image_url}")
         try:
             response = client.chat.completions.create(
             model="gpt-4-vision-preview",
@@ -61,10 +65,8 @@ class AIController():
             
         return {"msg":"Unexpected error occurred."}
 
-    
-    def encode_image(image_path):
+    def encode_image(self, image_path):
         with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
-
+            return base64.b64encode(image_file.read()).decode('utf-8')       
 
 ai = AIController()
