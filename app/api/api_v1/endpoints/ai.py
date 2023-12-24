@@ -16,8 +16,7 @@ router = APIRouter()
 @router.post("/analyze-image/", response_model=schemas.Msg, status_code=200)
 async def upload_file(
     file: UploadFile,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db)
 ) -> Any:
     """
     Retrieve Image Description.
@@ -50,14 +49,18 @@ async def upload_file(
             raise HTTPException(status_code=400, detail="Image dimensions are smaller than 512x512 pixels")
             return {"msg":"Image dimensions are smaller than 512x512 pixels"}
 
-        filename = os.path.basename(file.filename)
-        script_dir = os.path.dirname(os.path.abspath(os.sep))
-        files_dir = os.path.abspath(os.path.join(script_dir, os.environ.get('IMAGE_UPLOAD_DIR')))
-        
-        current_permissions = os.stat(files_dir).st_mode
-        os.chmod(files_dir, 0o755)
-        os.makedirs(files_dir, exist_ok=True)
-        filepath = os.path.join(files_dir, os.path.basename(file.filename))
+        try:
+            filename = os.path.basename(file.filename)
+            script_dir = os.path.dirname(os.path.abspath(os.sep))
+            files_dir = os.path.abspath(os.path.join(script_dir, os.environ.get('IMAGE_UPLOAD_DIR')))
+            current_permissions = os.stat(files_dir).st_mode
+            os.chmod(files_dir, 0o755)
+            os.makedirs(files_dir, exist_ok=True)
+            filepath = os.path.join(files_dir, os.path.basename(file.filename))
+        except IOError as e:
+            raise HTTPException(status_code=500, detail=f"Error with filepath: {e}")
+            return {"msg":f"Error saving file: {e}"}
+
 
         try:
             with open(filepath, 'wb') as f:

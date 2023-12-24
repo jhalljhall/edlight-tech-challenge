@@ -5,8 +5,8 @@
 3. create a .env file by copying the `.env.example` to the /app directory
 4. change the **OPENAI_API_KEY** value in the .env to your key
 5. run: `uvicorn main:app --reload`
-6. Open port 8000 up to public visibility by going to the PORTS tab and clicking the visibility toggle for the line item marked as **8000**
-7. Open a browser tab and go to the public URL + "/docs#/ai" to access the FastAPI Swagger UI
+6. Open port 8000 up to public visibility by going to the PORTS tab and right clicking the Private visibility setting. From the context menu toggle the visibility to Public
+7. Open a browser tab and go to the public URL + "/docs#/ai" to access the FastAPI Swagger UI. Modify the .env file's PUBLIC_URL to the domain provided by Codespaces. Look at the .env.example for an example domain
 8. Click the "Try It Out" button for the "analyse-image" endpoint
 9. Click "Choose a File" from the file input field
 10. Download an image like this one: https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg

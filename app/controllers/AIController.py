@@ -14,7 +14,6 @@ import io
 class AIController():
     async def describe_image(self, db: Session, image_url: str) -> str:
         client = OpenAI()
-        print(image_url)
         messages = [
                 {
                     "role": "user",
@@ -26,7 +25,7 @@ class AIController():
                         {
                         "type": "image_url",
                             "image_url": {
-                                "url": f"{image_url}",
+                                "url": image_url,
                             },
                         },
                     ],
