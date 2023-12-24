@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Union
 from sqlalchemy.orm import Session
 import os
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from dotenv import load_dotenv
 import requests
 import base64
@@ -14,10 +14,8 @@ import io
 class AIController():
     async def describe_image(self, db: Session, image_url: str) -> str:
         client = OpenAI()
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4-vision-preview",
-                messages=[
+        print(image_url)
+        messages = [
                 {
                     "role": "user",
                     "content": [
@@ -27,27 +25,34 @@ class AIController():
                         },
                         {
                         "type": "image_url",
-                        "image_url": {
-                            "url": image_url,
-                        },
+                            "image_url": {
+                                "url": f"{image_url}",
+                            },
                         },
                     ],
                 }
-            ],
-            max_tokens=500,
+            ]
+        print(messages)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=messages,
+            max_tokens=1000,
             )
+
             return {"msg": response.choices[0].message.content}
             
         except openai.APIError as e:
-            raise HTTPException(status_code=400, detail="Could not get the public url of the image")
+            raise HTTPException(status_code=400, detail=f"OpenAI API Error: {e}")
+            return {"msg": f"OpenAI API Error: {e}"}
 
         except openai.APIConnectionError as e:
-            raise HTTPException(status_code=500, detail="Could not connect to the OpenAI API")
+            raise HTTPException(status_code=500, detail=f"OpenAI API Connection Error: {e}")
+            return {"msg": f"OpenAI API Connection Error: {e}"}
             
         except openai.RateLimitError as e:
+            raise HTTPException(status_code=429, detail=f"OpenAI API request exceeded rate limit: {e}")
             return {"msg": f"OpenAI API request exceeded rate limit: {e}"}
-            
-        return {"msg":"Unexpected error occurred."}
 
     def encode_image(self, image_path):
         with open(image_path, "rb") as image_file:

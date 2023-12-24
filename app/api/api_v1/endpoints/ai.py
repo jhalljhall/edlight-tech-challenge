@@ -1,6 +1,8 @@
 from typing import Any, Annotated
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 from app import controllers, models, schemas
+import openai
+from openai import OpenAI
 from app.api import deps
 from sqlalchemy.orm import Session
 import pathlib 
@@ -50,12 +52,12 @@ async def upload_file(
             return {"msg":"Image dimensions are smaller than 512x512 pixels"}
 
         filename = os.path.basename(file.filename)
-        script_directory = os.path.dirname(os.path.abspath(os.sep))
-        files_directory = os.path.abspath(os.path.join(script_directory, os.environ.get('IMAGE_UPLOAD_DIR')))
-        current_permissions = os.stat(files_directory).st_mode
-        os.chmod(files_directory, 0o755)
-        os.makedirs(files_directory, exist_ok=True)
-        filepath = os.path.join(files_directory, os.path.basename(file.filename))
+        script_dir = os.path.dirname(os.path.abspath(os.sep))
+        files_dir = os.path.abspath(os.path.join(script_dir, os.environ.get('IMAGE_UPLOAD_DIR')))
+        current_permissions = os.stat(files_dir).st_mode
+        os.chmod(files_dir, 0o755)
+        os.makedirs(files_dir, exist_ok=True)
+        filepath = os.path.join(files_dir, os.path.basename(file.filename))
 
         try:
             with open(filepath, 'wb') as f:
@@ -63,22 +65,23 @@ async def upload_file(
 
         except IOError as e:
             raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
+            return {"msg":f"Error saving file: {e}"}
 
         finally:
             await file.close()
 
         try:
             image_url = f"{os.environ.get('PUBLIC_URL')}images/{filename}"
-            print(f"image_url: {image_url}")
         
         except:
-             raise HTTPException(status_code=400, detail="Could not get the public url of the image")
-        
+            raise HTTPException(status_code=400, detail="Could not get the public url of the image")
+            return {"msg":f"Could not get the public url of the image"}
+
         try:
             message = await controllers.ai.describe_image(db, image_url)
             print(f"message: {message}")
             return message
-        except:
-            raise HTTPException(status_code=400, detail="Could not describe the image")
+        except openai.APIError as e:
+            raise HTTPException(status_code=400, detail=f"OpenAI API Error: {e}")
 
     return {"msg":"Not here"}
