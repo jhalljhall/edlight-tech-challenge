@@ -1,53 +1,61 @@
-from typing import Any, Dict, Optional, Union, String
+from typing import Any, Dict, Optional, Union
+from sqlalchemy.orm import Session
 import os
+from fastapi import UploadFile, HTTPException
 from dotenv import load_dotenv
 import requests
 import base64
-from sqlalchemy.orm import Session
+import openai
 from openai import OpenAI
+import json
+from PIL import Image
+import io
 
 class AIController():
-    async def describe_image(self, db: Session, *, image_url: String) -> String:
+    async def describe_image(self, db: Session, image_url: str) -> str:
         client = OpenAI()
-        try:
-            payload = {
-                "model": "gpt-4-vision-preview",
-                "messages": [
-                    {
+        print(image_url)
+        messages = [
+                {
                     "role": "user",
                     "content": [
                         {
                         "type": "text",
-                        "text": "What’s in this image?"
+                        "text": "What is in this image?",
                         },
                         {
                         "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_image}"
-                        }
-                        }
-                    ]
-                    }
-                ],
-                "max_tokens": 300
-            }
-            base64_image = self.encode_image(image_url)
+                            "image_url": {
+                                "url": f"{image_url}",
+                            },
+                        },
+                    ],
+                }
+            ]
+        print(messages)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=messages,
+            max_tokens=1000,
+            )
 
-            # use api key from .env
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {os.environ.get('OPENAI_KEY')}"
-            }
-            response = requests.post(f"{os.environ.get('OPENAI_API_URL')}{os.environ.get('OPENAI_CHAT_PATH')}", headers=headers, json=payload)
-            return response.choices[0].message.content
-        except:
-            #exception
-            return "An error occurred."
-        # Function to encode the image
-    
-    def encode_image(image_path):
+            return {"msg": response.choices[0].message.content}
+            
+        except openai.APIError as e:
+            raise HTTPException(status_code=400, detail=f"OpenAI API Error: {e}")
+            return {"msg": f"OpenAI API Error: {e}"}
+
+        except openai.APIConnectionError as e:
+            raise HTTPException(status_code=500, detail=f"OpenAI API Connection Error: {e}")
+            return {"msg": f"OpenAI API Connection Error: {e}"}
+            
+        except openai.RateLimitError as e:
+            raise HTTPException(status_code=429, detail=f"OpenAI API request exceeded rate limit: {e}")
+            return {"msg": f"OpenAI API request exceeded rate limit: {e}"}
+
+    def encode_image(self, image_path):
         with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
-
+            return base64.b64encode(image_file.read()).decode('utf-8')       
 
 ai = AIController()

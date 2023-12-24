@@ -58,7 +58,6 @@ def update_user_me(
     db: Session = Depends(deps.get_db),
     password: str = Body(None),
     email: EmailStr = Body(None),
-    username: EmailStr = Body(None),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -70,8 +69,6 @@ def update_user_me(
         user_in.password = password
     if email is not None:
         user_in.email = email
-    if username is not None:
-        user_in.username = email
     user = controllers.user.update(db, db_obj=current_user, obj_in=user_in)
     return user
 
@@ -93,7 +90,6 @@ def create_user_open(
     db: Session = Depends(deps.get_db),
     password: str = Body(...),
     email: EmailStr = Body(...),
-    userame: str = Body(None),
 ) -> Any:
     """
     Create new user without the need to be logged in.
@@ -155,7 +151,7 @@ def update_user(
 
 @router.post("/register")
 def register_user(*, db: Session = Depends(deps.get_db), 
-    username: Annotated[str, Form()], email: Annotated[str, Form()], password: Annotated[str, Form()]
+    email: Annotated[str, Form()], password: Annotated[str, Form()]
 ) -> Any:
     """
     Create new user without the need to be logged in.
@@ -171,7 +167,7 @@ def register_user(*, db: Session = Depends(deps.get_db),
             status_code=400,
             detail="The user with this username already exists in the system",
         )
-    user_in = schemas.UserCreate(password=password, email=email, username=username)
+    user_in = schemas.UserCreate(password=password, email=email)
     new_user = controllers.user.create(db, obj_in=user_in)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 

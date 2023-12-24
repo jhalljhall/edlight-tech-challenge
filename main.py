@@ -4,9 +4,13 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api.api_v1.api import api_router
 from app.core.config import settings
 
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+app.mount("/images", StaticFiles(directory="images"), name="images")
 
 # Set all CORS enabled origins
 # Set all CORS enabled origins
