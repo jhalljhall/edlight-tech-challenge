@@ -54,6 +54,7 @@ async def upload_file(
         filename = os.path.basename(file.filename)
         script_dir = os.path.dirname(os.path.abspath(os.sep))
         files_dir = os.path.abspath(os.path.join(script_dir, os.environ.get('IMAGE_UPLOAD_DIR')))
+        
         current_permissions = os.stat(files_dir).st_mode
         os.chmod(files_dir, 0o755)
         os.makedirs(files_dir, exist_ok=True)
