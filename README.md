@@ -1,5 +1,7 @@
 # edlight-tech-challenge
 
+Justin Hall jhalljhall[at]gmail[com]
+
 1. Open in Codespaces
 2. run: `pip install -r requirements.txt`
 3. create a .env file by copying the `.env.example` to the /app directory
