@@ -35,7 +35,8 @@ def get_url():
     password = os.getenv("DB_PASSWORD", "postgres")
     server = os.getenv("DB_SERVER", "localhost:5432")
     db = os.getenv("DB_NAME", "postgres")
-    connection_string = f"postgresql://{user}:{password}@{server}/{db}"
+    port = os.getenv("DB_PORT", "5432")
+    connection_string = f"postgresql://{user}:{password}@{server}:{port}/{db}"
    
     return connection_string
 
