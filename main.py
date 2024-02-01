@@ -1,7 +1,8 @@
+import datetime
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.api_v1.api import api_router
+#from app.api.api_v1.api import api_router
 from app.core.config import settings
 
 from fastapi.staticfiles import StaticFiles
@@ -26,5 +27,14 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {"message":"Hello World"}
+
+@app.post("/scan")
+async def root():
+    now = datetime.datetime
+    return {"message":"scan",
+            "scan_img_url": "/images/default_01.png",
+            "scan_msg_str": "Scan: Successful Scan. Outer Rim passes.",
+            "scan_time_str": f"Last Scan: {now}"
+            }
     
-app.include_router(api_router, prefix=settings.API_V1_STR)
+#app.include_router(api_router, prefix=settings.API_V1_STR)
