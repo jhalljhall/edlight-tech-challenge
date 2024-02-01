@@ -118,49 +118,50 @@ async def upload_file(
         try:
             message = "hello"
 
-            # Load image 
-            image = cv2.imread(image_url, 0) 
+            #Load image
+            image = cv2.imread(image_url)
             
-            # Set our filtering parameters 
-            # Initialize parameter setting using cv2.SimpleBlobDetector 
-            params = cv2.SimpleBlobDetector_Params() 
+            # Apply Gaussian blur to the original image
+            blurred_image = cv2.GaussianBlur(image, (15, 15), 0)  # Adjust the kernel size as needed
             
-            # Set Area filtering parameters 
-            params.filterByArea = True
-            params.minArea = 100
+            # Convert the blurred image to grayscale
+            gray_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2GRAY)
             
-            # Set Circularity filtering parameters 
-            params.filterByCircularity = True 
-            params.minCircularity = 0.9
+            # Apply Canny edge detection
+            edges = cv2.Canny(gray_image, 50, 150)
             
-            # Set Convexity filtering parameters 
-            params.filterByConvexity = True
-            params.minConvexity = 0.2
-                
-            # Set inertia filtering parameters 
-            params.filterByInertia = True
-            params.minInertiaRatio = 0.01
+            # Find contours in the edged image
+            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             
-            # Create a detector with the parameters 
-            detector = cv2.SimpleBlobDetector_create(params) 
-                
-            # Detect blobs 
-            keypoints = detector.detect(image) 
+            # Get the area of the whole image
+            image_area = gray_image.shape[0] * gray_image.shape[1]
             
-            # Draw blobs on our image as red circles 
-            blank = np.zeros((1, 1))  
-            blobs = cv2.drawKeypoints(image, keypoints, blank, (0, 0, 255), 
-                                    cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS) 
+            # Draw circles based on detected contours on the original image
+            for contour in contours:
+                # Calculate the bounding box for the contour
+                x, y, w, h = cv2.boundingRect(contour)
             
-            number_of_blobs = len(keypoints) 
-            text = "Number of Circular Blobs: " + str(len(keypoints)) 
-            cv2.putText(blobs, text, (20, 550), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 100, 255), 2) 
+                # Calculate the area covered by the bounding box
+                bounding_box_area = w * h
             
-            # Show blobs 
-            cv2.imshow("Filtering Circular Blobs Only", blobs) 
-            cv2.waitKey(0) 
-            cv2.destroyAllWindows() 
+                # Check if the bounding box area is at least 20% of the image area
+                if bounding_box_area >= 0.2 * image_area:
+                    # Fit a circle to the contour
+                    if len(contour) >= 5:
+                        (x, y), radius = cv2.minEnclosingCircle(contour)
+                        center = (int(x), int(y))
+                        radius = int(radius)
+                        
+                        # Calculate the area of the circle
+                        circle_area = np.pi * radius**2
+            
+                        # Check if the circle area is at least 50% of the image area
+                        if circle_area >= 0.15 * image_area:
+                            # Draw the circle on the original image
+                            cv2.circle(image, center, radius, (0, 255, 0), 2)  # Change (0, 255, 0) to the desired circle color
+            
+            # Save the resulting image with circles
+            cv2.imwrite("/workspace/vision-opencv/images/ring_2_circletest.png", image)
             print(f"message: {message}")
             return message
         except openai.APIError as e:
